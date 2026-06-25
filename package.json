@@ -1,0 +1,9 @@
+{
+  "name": "license-system",
+  "version": "1.0.0",
+  "description": "License Management System",
+  "main": "api/index.js",
+  "dependencies": {
+    "ioredis": "^5.3.2"
+  }
+}
