@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 License Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #0a0a1a 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #ffd700, #ff6b6b, #ffd700);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 3s ease-in-out infinite;
+        }
+        .header p {
+            color: #aaa;
+            margin-top: 10px;
+        }
+        @keyframes glow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .stat-card .label { color: #aaa; margin-top: 5px; }
+        .stat-card.active .number { color: #00ff88; }
+        .stat-card.expired .number { color: #ff4444; }
+        .stat-card.usage .number { color: #ff6b6b; }
+        
+        .panel {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        .panel h2 {
+            color: #ffd700;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .input-group select, .input-group input {
+            padding: 12px 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 1em;
+            flex: 1;
+            min-width: 150px;
+        }
+        .input-group select option { background: #1a0a2e; }
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #ffd700, #f0a500);
+            color: #000;
+        }
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+        }
+        .btn-danger {
+            background: linear-gradient(45deg, #ff4444, #cc0000);
+            color: #fff;
+        }
+        .btn-danger:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 68, 68, 0.3);
+        }
+        .btn-success {
+            background: linear-gradient(45deg, #00ff88, #00cc66);
+            color: #000;
+        }
+        .btn-success:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+        }
+        .btn-warning {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: #fff;
+        }
+        .btn-warning:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 107, 107, 0.3);
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        th {
+            color: #ffd700;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            letter-spacing: 1px;
+        }
+        tr:hover { background: rgba(255,255,255,0.03); }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .status-active { background: rgba(0, 255, 136, 0.2); color: #00ff88; }
+        .status-expired { background: rgba(255, 68, 68, 0.2); color: #ff4444; }
+        .status-revoked { background: rgba(255, 107, 107, 0.2); color: #ff6b6b; }
+        
+        .actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .actions .btn {
+            padding: 5px 12px;
+            font-size: 0.8em;
+        }
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 0.8em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-sm:hover { transform: scale(1.05); }
+        .btn-revoke { background: #ff4444; color: #fff; }
+        .btn-delete { background: #cc0000; color: #fff; }
+        .btn-check { background: #00ff88; color: #000; }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #aaa;
+        }
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4) infinite;
+        }
+        @keyframes dots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            animation: slideIn 0.5s ease;
+            z-index: 999;
+        }
+        .toast-success { background: #00ff88; color: #000; }
+        .toast-error { background: #ff4444; color: #fff; }
+        .toast-info { background: #ffd700; color: #000; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .key-display {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px dashed #ffd700;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            text-align: center;
+            color: #ffd700;
+            word-break: break-all;
+        }
+        .key-display .label { color: #aaa; font-size: 0.7em; display: block; margin-bottom: 5px; }
+        .key-display .copy-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .key-display .copy-btn:hover { background: rgba(255,255,255,0.2); }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #555;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 LICENSE MANAGEMENT SYSTEM</h1>
+            <p>Premium License Manager - Unlimited Device Support</p>
+            <p style="font-size:0.8em;color:#666;margin-top:5px;">Powered by Vercel + Upstash Redis</p>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-card active">
+                <div class="number" id="statTotal">0</div>
+                <div class="label">📊 Total Licenses</div>
+            </div>
+            <div class="stat-card active">
+                <div class="number" id="statActive" style="color:#00ff88;">0</div>
+                <div class="label">🟢 Active</div>
+            </div>
+            <div class="stat-card expired">
+                <div class="number" id="statExpired" style="color:#ff4444;">0</div>
+                <div class="label">🔴 Expired</div>
+            </div>
+            <div class="stat-card usage">
+                <div class="number" id="statUsage" style="color:#ff6b6b;">0</div>
+                <div class="label">📱 Total Usage</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>🔑 Generate New License</h2>
+            <div class="input-group">
+                <select id="durationSelect">
+                    <option value="30">1 Month (30 days)</option>
+                    <option value="90">3 Months (90 days)</option>
+                    <option value="180">6 Months (180 days)</option>
+                    <option value="365">1 Year (365 days)</option>
+                    <option value="0">Permanent (Never Expires)</option>
+                </select>
+                <button class="btn btn-primary" onclick="generateLicense()">📝 Generate Key</button>
+            </div>
+            <div id="newKeyDisplay" style="display:none;" class="key-display">
+                <span class="label">✨ NEW LICENSE KEY GENERATED</span>
+                <span id="newKeyText"></span>
+                <br>
+                <button class="copy-btn" onclick="copyKey()">📋 Copy Key</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>🔍 Check License</h2>
+            <div class="input-group">
+                <input type="text" id="checkKeyInput" placeholder="Masukkan key (contoh: UCGG-XXXX-XXXX-XXXX)" style="flex:2;">
+                <button class="btn btn-success" onclick="checkLicense()">🔍 Check</button>
+            </div>
+            <div id="checkResult" style="margin-top:10px;display:none;"></div>
+        </div>
+
+        <div class="panel">
+            <h2>📋 All Licenses</h2>
+            <div style="margin-bottom:15px;display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="btn btn-success btn-sm" onclick="refreshTable()">🔄 Refresh</button>
+                <button class="btn btn-danger btn-sm" onclick="cleanExpired()">🗑️ Clean Expired</button>
+            </div>
+            <div class="table-wrapper">
+                <div id="loadingTable" class="loading">Loading licenses</div>
+                <div id="tableContainer" style="display:none;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>License Key</th>
+                                <th>Status</th>
+                                <th>Expires</th>
+                                <th>Usage</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="licenseTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            Made with ❤️ | UCGG Premium License System
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        async function fetchAPI(endpoint, options = {}) {
+            try {
+                const response = await fetch(API_BASE + endpoint, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+                return await response.json();
+            } catch (error) {
+                showToast('❌ Gagal konek ke server', 'error');
+                return null;
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        async function loadStats() {
+            const data = await fetchAPI('/stats');
+            if (data) {
+                document.getElementById('statTotal').textContent = data.total || 0;
+                document.getElementById('statActive').textContent = data.active || 0;
+                document.getElementById('statExpired').textContent = data.expired || 0;
+                document.getElementById('statUsage').textContent = data.total_usage || 0;
+            }
+        }
+
+        async function loadTable() {
+            document.getElementById('loadingTable').style.display = 'block';
+            document.getElementById('tableContainer').style.display = 'none';
+            
+            const data = await fetchAPI('/licenses');
+            
+            document.getElementById('loadingTable').style.display = 'none';
+            
+            if (data && data.licenses) {
+                document.getElementById('tableContainer').style.display = 'block';
+                const tbody = document.getElementById('licenseTableBody');
+                tbody.innerHTML = '';
+                
+                data.licenses.forEach((lic, index) => {
+                    const row = document.createElement('tr');
+                    const statusClass = lic.status === 'active' ? 'status-active' : 
+                                       lic.status === 'expired' ? 'status-expired' : 'status-revoked';
+                    const statusText = lic.status === 'active' ? '🟢 Active' :
+                                      lic.status === 'expired' ? '🔴 Expired' : '⛔ Revoked';
+                    
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td style="font-family:monospace;font-size:0.9em;">${lic.key}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>${lic.expires_at || 'Permanent'}</td>
+                        <td>${lic.usage_count || 0} devices</td>
+                        <td>
+                            <div class="actions">
+                                ${lic.status === 'active' ? 
+                                    `<button class="btn-sm btn-revoke" onclick="revokeLicense('${lic.key}')">🔴 Revoke</button>` : 
+                                    `<button class="btn-sm btn-check" onclick="reactivateLicense('${lic.key}')">✅ Reactivate</button>`
+                                }
+                                <button class="btn-sm btn-delete" onclick="deleteLicense('${lic.key}')">🗑️ Delete</button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                document.getElementById('tableContainer').style.display = 'none';
+                document.getElementById('loadingTable').textContent = '📭 No licenses found';
+            }
+        }
+
+        async function generateLicense() {
+            const duration = parseInt(document.getElementById('durationSelect').value);
+            const data = await fetchAPI('/generate', {
+                method: 'POST',
+                body: JSON.stringify({ duration })
+            });
+            
+            if (data && data.key) {
+                document.getElementById('newKeyDisplay').style.display = 'block';
+                document.getElementById('newKeyText').textContent = data.key;
+                showToast('✅ License generated successfully!', 'success');
+                refreshAll();
+            } else {
+                showToast('❌ Failed to generate license', 'error');
+            }
+        }
+
+        function copyKey() {
+            const text = document.getElementById('newKeyText').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('📋 Key copied!', 'info');
+            });
+        }
+
+        async function checkLicense() {
+            const key = document.getElementById('checkKeyInput').value.trim();
+            if (!key) {
+                showToast('⚠️ Please enter a license key', 'error');
+                return;
+            }
+            
+            const result = document.getElementById('checkResult');
+            result.style.display = 'block';
+            result.innerHTML = '⏳ Checking...';
+            
+            const data = await fetchAPI('/verify', {
+                method: 'POST',
+                body: JSON.stringify({ key })
+            });
+            
+            if (data) {
+                if (data.valid) {
+                    result.innerHTML = `
+                        <div style="padding:15px;border-radius:10px;background:rgba(0,255,136,0.1);border:1px solid #00ff88;">
+                            ✅ <strong>VALID LICENSE</strong><br>
+                            Key: <span style="font-family:monospace;">${data.key}</span><br>
+                            Status: <span style="color:#00ff88;">${data.status}</span><br>
+                            Expires: ${data.expires_at || 'Permanent'}<br>
+                            Usage: ${data.usage_count || 0} devices
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div style="padding:15px;border-radius:10px;background:rgba(255,68,68,0.1);border:1px solid #ff4444;">
+                            ❌ <strong>INVALID LICENSE</strong><br>
+                            ${data.message || 'License is not valid or has expired'}
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        async function revokeLicense(key) {
+            if (!confirm(`⚠️ Revoke license ${key}? This will disable it for ALL users.`)) return;
+            
+            const data = await fetchAPI('/revoke', {
+                method: 'POST',
+                body: JSON.stringify({ key })
+            });
+            
+            if (data && data.success) {
+                showToast('✅ License revoked successfully!', 'success');
+                refreshAll();
+            } else {
+                showToast('❌ Failed to revoke license', 'error');
+            }
+        }
+
+        async function reactivateLicense(key) {
+            const data = await fetchAPI('/reactivate', {
+                method: 'POST',
+                body: JSON.stringify({ key })
+            });
+            
+            if (data && data.success) {
+                showToast('✅ License reactivated!', 'success');
+                refreshAll();
+            } else {
+                showToast('❌ Failed to reactivate', 'error');
+            }
+        }
+
+        async function deleteLicense(key) {
+            if (!confirm(`🗑️ Delete license ${key} permanently?`)) return;
+            
+            const data = await fetchAPI('/delete', {
+                method: 'POST',
+                body: JSON.stringify({ key })
+            });
+            
+            if (data && data.success) {
+                showToast('✅ License deleted!', 'success');
+                refreshAll();
+            } else {
+                showToast('❌ Failed to delete', 'error');
+            }
+        }
+
+     
